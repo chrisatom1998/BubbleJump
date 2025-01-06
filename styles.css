@@ -7,6 +7,7 @@ html, body {
     position: fixed;
     touch-action: none;
     -webkit-touch-callout: none;
+    user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
     font-family: Arial, sans-serif;
@@ -16,8 +17,28 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(45deg, #1a1a1a, #4a4a4a);
+    background: linear-gradient(to bottom, #89CFF0, #FFB6C1);
     color: white;
+}
+
+.bubble {
+    position: absolute;
+    bottom: -50px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    opacity: 0.7;
+    animation: rise infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes rise {
+    from {
+        transform: translateY(0) rotate(0deg);
+    }
+    to {
+        transform: translateY(-100vh) rotate(360deg);
+    }
 }
 
 #game-container {

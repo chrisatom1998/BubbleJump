@@ -7,6 +7,9 @@ class BubbleGame {
         this.highScoreElement = document.getElementById('high-score');
         this.controlsHint = document.getElementById('controls-hint');
 
+        // Create background bubbles
+        this.createBackgroundBubbles();
+
         // Set canvas size to match screen dimensions
         this.resizeCanvas();
         window.addEventListener('resize', () => this.resizeCanvas());
@@ -19,6 +22,7 @@ class BubbleGame {
         this.score = 0;
         this.combo = 0;
         this.level = 1;
+        this.lastTapTime = 0; // Track last bubble tap time
         this.timeLeft = 60; // 60 seconds per level
         this.highScore = parseInt(localStorage.getItem('bubbleGameHighScore')) || 0;
         this.updateHighScore();
@@ -67,6 +71,42 @@ class BubbleGame {
 
         // Initial render
         this.render();
+    }
+
+    createBackgroundBubbles() {
+        for (let i = 0; i < 20; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            const size = Math.random() * 60 + 20; // Random size between 20px and 80px
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${Math.random() * 100}%`;
+            bubble.style.animationDuration = `${Math.random() * 10 + 5}s`; // Random duration between 5-15s
+            bubble.style.animationDelay = `${Math.random() * 5}s`; // Random delay up to 5s
+            document.body.appendChild(bubble);
+
+            // Remove and recreate bubble when animation ends
+            bubble.addEventListener('animationend', () => {
+                bubble.remove();
+                this.createSingleBackgroundBubble();
+            });
+        }
+    }
+
+    createSingleBackgroundBubble() {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        const size = Math.random() * 60 + 20;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.left = `${Math.random() * 100}%`;
+        bubble.style.animationDuration = `${Math.random() * 10 + 5}s`;
+        document.body.appendChild(bubble);
+
+        bubble.addEventListener('animationend', () => {
+            bubble.remove();
+            this.createSingleBackgroundBubble();
+        });
     }
 
     bindEvents() {
@@ -121,6 +161,7 @@ class BubbleGame {
         this.combo = 0;
         this.level = 1;
         this.timeLeft = 60;
+        this.lastTapTime = 0;
         this.updateScore();
         this.startButton.classList.add('hidden');
         this.controlsHint.classList.add('hidden');
@@ -284,10 +325,20 @@ class BubbleGame {
         // Draw level
         this.ctx.fillText(`Level ${this.level}`, this.canvas.width / 2, this.baseUnit * 4);
         
-        // Draw combo
+        // Draw combo and speed bonus
         if (this.combo > 1) {
             this.ctx.fillStyle = '#FFD700';
             this.ctx.fillText(`Combo x${this.combo}!`, this.canvas.width / 2, this.canvas.height - this.baseUnit * 4);
+        }
+
+        // Show speed bonus potential
+        const timeSinceLastTap = Date.now() - this.lastTapTime;
+        if (this.lastTapTime > 0 && timeSinceLastTap < 2000) {
+            const potentialMultiplier = Math.min(3, Math.max(1, 3 - (timeSinceLastTap / 1000)));
+            if (potentialMultiplier > 1) {
+                this.ctx.fillStyle = '#00FF00';
+                this.ctx.fillText(`Speed x${potentialMultiplier.toFixed(1)}`, this.canvas.width / 2, this.canvas.height - this.baseUnit * 6);
+            }
         }
 
         // Draw power-up indicators
@@ -310,12 +361,35 @@ class BubbleGame {
             bubble.popping = true;
             this.playerSequence.push(bubble.sequenceIndex);
             
+            // Calculate speed multiplier
+            const currentTime = Date.now();
+            let speedMultiplier = 1;
+            
+            if (this.lastTapTime > 0) {
+                const timeDiff = currentTime - this.lastTapTime;
+                // Faster taps = higher multiplier (up to 3x)
+                // 500ms or less = 3x, 1000ms = 2x, 2000ms = 1x
+                speedMultiplier = Math.min(3, Math.max(1, 3 - (timeDiff / 1000)));
+            }
+            this.lastTapTime = currentTime;
+
             // Update score and combo
             const basePoints = 100;
             const comboMultiplier = this.combo;
             const doubleMultiplier = this.powerUps.scoreDoubler.active ? 2 : 1;
-            this.score += basePoints * comboMultiplier * doubleMultiplier;
+            const points = Math.round(basePoints * comboMultiplier * doubleMultiplier * speedMultiplier);
+            this.score += points;
             this.combo++;
+            
+            // Show speed bonus text
+            if (speedMultiplier > 1) {
+                this.ctx.save();
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.font = `${this.baseUnit * 1.2}px Arial`;
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(`Speed Bonus x${speedMultiplier.toFixed(1)}!`, this.canvas.width / 2, this.canvas.height - this.baseUnit * 6);
+                this.ctx.restore();
+            }
             
             this.updateScore();
 
