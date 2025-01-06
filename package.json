@@ -1,13 +1,16 @@
 {
-  "name": "bubble-jump",
+  "name": "bubble-sequence",
   "version": "1.0.0",
-  "description": "A fun bubble jumping web game",
+  "description": "A fun bubble sequence matching game",
   "scripts": {
     "start": "npx http-server . -p 8080",
-    "build": "if not exist dist mkdir dist && copy index.html dist\\ && copy game.js dist\\ && copy styles.css dist\\ && copy icon.svg dist\\ && copy manifest.json dist\\",
-    "cap:init": "cap init BubbleJump com.bubblejump.app",
+    "cap:init": "cap init \"Bubble Sequence\" com.bubblesequence.app",
     "cap:add": "cap add",
-    "cap:sync": "cap sync"
+    "cap:sync": "cap sync",
+    "ios:build": "cap sync ios && cap open ios",
+    "ios:dev": "cap run ios",
+    "android:build": "cap sync android && cap open android",
+    "android:dev": "cap run android"
   },
   "dependencies": {
     "@capacitor/core": "^5.5.0"
@@ -19,15 +22,15 @@
     "http-server": "^14.1.1"
   },
   "capacitor": {
-    "appId": "com.bubblejump.app",
-    "appName": "Bubble Jump",
-    "webDir": "dist",
+    "appId": "com.bubblesequence.app",
+    "appName": "Bubble Sequence",
+    "webDir": ".",
     "bundledWebRuntime": false,
     "ios": {
       "contentInset": "always"
     },
     "android": {
-      "backgroundColor": "#40E0D0"
+      "backgroundColor": "#1a1a1a"
     }
   }
 }

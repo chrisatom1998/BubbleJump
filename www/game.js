@@ -23,29 +23,8 @@ class BubbleGame {
         this.highScore = parseInt(localStorage.getItem('bubbleGameHighScore')) || 0;
         this.updateHighScore();
 
-        // Color sequence for bubbles (expanded to support more bubbles)
-        this.colors = [
-            '#FF4136', // Red
-            '#2ECC40', // Green
-            '#0074D9', // Blue
-            '#FFDC00', // Yellow
-            '#B10DC9', // Purple
-            '#FF851B', // Orange
-            '#39CCCC', // Teal
-            '#F012BE', // Magenta
-            '#01FF70', // Lime
-            '#7FDBFF', // Light Blue
-            '#FF69B4', // Hot Pink
-            '#FFB6C1', // Light Pink
-            '#98FB98', // Pale Green
-            '#DDA0DD', // Plum
-            '#87CEEB', // Sky Blue
-            '#CD853F', // Peru
-            '#8B4513', // Saddle Brown
-            '#4B0082', // Indigo
-            '#9370DB', // Medium Purple
-            '#48D1CC'  // Medium Turquoise
-        ];
+        // Color sequence for bubbles
+        this.colors = ['#FF4136', '#2ECC40', '#0074D9', '#FFDC00', '#B10DC9'];
         this.currentSequence = [];
         this.playerSequence = [];
 
@@ -132,36 +111,10 @@ class BubbleGame {
         this.gameLoop();
     }
 
-    getRandomPosition(bubbleRadius) {
-        // Add padding from edges
-        const padding = bubbleRadius * 2;
-        return {
-            x: padding + Math.random() * (this.canvas.width - padding * 2),
-            y: padding + Math.random() * (this.canvas.height - padding * 2)
-        };
-    }
-
-    checkBubbleOverlap(newX, newY, radius, existingBubbles) {
-        // Check minimum distance between bubbles (add some padding)
-        const minDistance = radius * 2.5;
-        
-        for (const bubble of existingBubbles) {
-            const dx = newX - bubble.x;
-            const dy = newY - bubble.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance < minDistance) {
-                return true; // Overlap detected
-            }
-        }
-        return false; // No overlap
-    }
-
     generateSequence() {
         this.currentSequence = [];
         this.playerSequence = [];
-        // Start with 3 bubbles, add 1 every level up to 20
-        const sequenceLength = Math.min(3 + (this.level - 1), 20);
+        const sequenceLength = Math.min(3 + Math.floor(this.level / 2), this.colors.length);
         
         // Generate random sequence
         for (let i = 0; i < sequenceLength; i++) {
@@ -170,37 +123,16 @@ class BubbleGame {
 
         // Create bubbles for the sequence
         this.bubbles = [];
-        const bubbleRadius = this.baseUnit * 2;
-        
         for (let i = 0; i < this.currentSequence.length; i++) {
-            let position;
-            let attempts = 0;
-            const maxAttempts = 100;
-
-            // Keep trying to find a non-overlapping position
-            do {
-                position = this.getRandomPosition(bubbleRadius);
-                attempts++;
-                
-                // If we can't find a spot after max attempts, use a backup grid position
-                if (attempts >= maxAttempts) {
-                    const gridSize = Math.ceil(Math.sqrt(this.currentSequence.length));
-                    const cellWidth = this.canvas.width / (gridSize + 1);
-                    const cellHeight = this.canvas.height / (gridSize + 1);
-                    const row = Math.floor(i / gridSize);
-                    const col = i % gridSize;
-                    position = {
-                        x: cellWidth + col * cellWidth,
-                        y: cellHeight + row * cellHeight
-                    };
-                    break;
-                }
-            } while (this.checkBubbleOverlap(position.x, position.y, bubbleRadius, this.bubbles));
+            const angle = (i * 2 * Math.PI) / this.currentSequence.length;
+            const radius = this.baseUnit * 6;
+            const x = this.canvas.width / 2 + Math.cos(angle) * radius;
+            const y = this.canvas.height / 2 + Math.sin(angle) * radius;
 
             this.bubbles.push({
-                x: position.x,
-                y: position.y,
-                radius: bubbleRadius,
+                x,
+                y,
+                radius: this.baseUnit * 2,
                 color: this.colors[this.currentSequence[i]],
                 sequenceIndex: i,
                 scale: 1,

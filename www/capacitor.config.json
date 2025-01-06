@@ -1,7 +1,7 @@
 {
   "appId": "com.bubblesequence.app",
   "appName": "Bubble Sequence",
-  "webDir": "www",
+  "webDir": ".",
   "server": {
     "androidScheme": "https",
     "iosScheme": "https"
